@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'api/avg_employee', views.AverageEmployeeCount.as_view(), name='average_employee_count'),
     url(r'api/ten_most_recent', views.TenMostRecentCompanies.as_view(), name='top_ten_recent_companies'),
     url(r'api/created_most_companies', views.UserWhoCreatedTheMostCompanies.as_view(), name='user_who_created_most_companies'),
+    url(r'api/average_amount_raised', views.AverageDealsRaisedbyCountry.as_view(), name='average_amount_raised_by_country'),
     url(r'^', include(router.urls)),
     url(r'^companies/', include('companies.urls', namespace='companies')),
 ]

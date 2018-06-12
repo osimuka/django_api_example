@@ -1,4 +1,4 @@
-from companies.models import Company, Employee
+from companies.models import Company, Employee, Deal
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
@@ -26,7 +26,7 @@ class CurrentlyMonitoredCompany(APIView):
     '''Create an API end point which allows authenticated users to see 
     which companies they're currently monitoring.'''
 
-    def get(self, request, id=None):
+    def get(self, request, format=None):
 
         context = {}
 
@@ -42,6 +42,29 @@ class CurrentlyMonitoredCompany(APIView):
             return Response(context)
 
         # raise an authentication error if the user is not logged in 403 forbidden
+        raise exceptions.NotAuthenticated()
+
+    def post(self, request, format=None):
+
+        context = {}
+
+        '''if request.user.is_authenticated():
+
+            current_user = request.user
+
+            queryset = Company.objects.get(id=request.da).add(current_user)
+
+            serializer = CompanySerializer(queryset)
+
+            if serializer.is_valid():
+
+                serializer.save()
+
+                return Response(serializer.data)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+         # raise an authentication error if the user is not logged in 403 forbidden'''
         raise exceptions.NotAuthenticated()
 
 
@@ -92,9 +115,9 @@ class UserWhoCreatedTheMostCompanies(APIView):
 
         serializer = UserSerializer(queryset, many=False)
 
-        content = {'user_created_most_companies': serializer.data}
+        context = {'user_created_most_companies': serializer.data}
 
-        return Response(content)
+        return Response(context)
 
 class UserWithHighestNumberofEmployees(APIView):
     '''User with the greatest total number of employees at all companies they have created'''
@@ -102,4 +125,18 @@ class UserWithHighestNumberofEmployees(APIView):
 
 class AverageDealsRaisedbyCountry(APIView):
     '''Average deal amount raised by country (i.e. deals for companies in those countries)'''
-    pass
+
+    def get(self, request, format=None):
+
+        amount_raised = 0
+
+        company_count = Company.objects.all().count()
+
+        for d in Deal.objects.all():
+            amount_raised += d.amount_raised
+
+        avg_raised = amount_raised/company_count
+
+        context = {'average_amount_raised': avg_raised}
+
+        return Response(context)

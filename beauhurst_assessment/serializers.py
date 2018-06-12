@@ -8,7 +8,7 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = ('id', 'name', 'description', 'creator', 'date_founded', 'country', 'monitors')
-        read_only_fields = ('id', 'name', 'description', 'creator', 'date_founded', 'country', 'monitors')
+        read_only_fields = ('id', 'name', 'description', 'creator', 'date_founded', 'country')
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
