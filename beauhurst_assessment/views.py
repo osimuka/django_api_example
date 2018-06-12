@@ -4,18 +4,46 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-#from django_filters.rest_framework import DjangoFilterBackend
-from beauhurst_assessment.serializers import CompanySerializer
+from rest_framework import exceptions
+from beauhurst_assessment.serializers import CompanySerializer, UserSerializer
 
 class CompanyListView(viewsets.ModelViewSet):
 
-    '''Create an API end point which allows authenticated users (no need to handle API keys, 
-    just assume they're logged in) to pass in the id of a company to monitor.
-    Create an API end point which allows authenticated users to see which companies they're currently monitoring.
-    '''
+    ''' a list of all the comapnies in the database '''
+
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     lookup_field = 'id'
+
+class MonitorCompany(APIView):
+    '''Create an API end point which allows authenticated users (no need to handle API keys, 
+    just assume they're logged in) to pass in the id of a company to monitor.'''
+
+    pass
+
+
+class CurrentlyMonitoredCompany(APIView):
+    '''Create an API end point which allows authenticated users to see 
+    which companies they're currently monitoring.'''
+
+    def get(self, request, id=None):
+
+        context = {}
+
+        if request.user.is_authenticated():
+            current_user = request.user
+
+            queryset = Company.objects.filter(monitors=current_user.id)
+
+            serializer = CompanySerializer(queryset, many=True)
+
+            context = {'currently_monitoring': serializer.data}
+
+            return Response(context)
+
+        # raise an authentication error if the user is not logged in 403 forbidden
+        raise exceptions.NotAuthenticated()
+
 
 class TenMostRecentCompanies(APIView):
     '''The 10 most recently founded companies'''
@@ -45,10 +73,6 @@ class AverageEmployeeCount(APIView):
 
         return Response(content)
 
-class BreakdownOfNumberOfCompaniesFoundedPerQuarter(APIView):
-    '''Breakdown of number of companies founded per quarter for the last five years'''
-    pass
-
 class UserWhoCreatedTheMostCompanies(APIView):
     '''User who has created the most companies'''
 
@@ -64,9 +88,11 @@ class UserWhoCreatedTheMostCompanies(APIView):
             else:
                 d[company.creator] += 1
 
-        user_created_most_companies = max(d, key=d.get)
+        queryset = max(d, key=d.get)
 
-        content = {'user_created_most_companies': str(user_created_most_companies)}
+        serializer = UserSerializer(queryset, many=False)
+
+        content = {'user_created_most_companies': serializer.data}
 
         return Response(content)
 
