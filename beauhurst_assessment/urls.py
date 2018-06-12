@@ -15,8 +15,16 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from rest_framework import routers
+from beauhurst_assessment import views
+
+
+router = routers.SimpleRouter()
+router.register(r'api/companies', views.CompanyListView)
 
 urlpatterns = [
+    
+    url(r'^', include(router.urls)),
     url(r'^admin/', admin.site.urls),
     url(r'^companies/', include('companies.urls', namespace='companies')),
 ]
