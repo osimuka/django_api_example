@@ -1,3 +1,6 @@
+'''Django REST framework was used for this exercise http://www.django-rest-framework.org/'''
+
+from django.http import Http404
 from companies.models import Company, Employee, Deal
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
@@ -5,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import exceptions
+from rest_framework import status
 from beauhurst_assessment.serializers import CompanySerializer, UserSerializer
 
 class CompanyListView(viewsets.ModelViewSet):
@@ -15,21 +19,23 @@ class CompanyListView(viewsets.ModelViewSet):
     serializer_class = CompanySerializer
     lookup_field = 'id'
 
-class MonitorCompany(APIView):
-    '''Create an API end point which allows authenticated users (no need to handle API keys, 
-    just assume they're logged in) to pass in the id of a company to monitor.'''
-
-    pass
-
 
 class CurrentlyMonitoredCompany(APIView):
-    '''Create an API end point which allows authenticated users to see 
-    which companies they're currently monitoring.'''
+
+    def get_object(self, id):
+        try:
+            return Company.objects.get(id=id)
+        except Company.DoesNotExist:
+            raise Http404
 
     def get(self, request, format=None):
 
+        '''Create an API end point which allows authenticated users to see 
+         which companies they're currently monitoring.'''
+
         context = {}
 
+        # only authenticated users can perform this operation (test with admin user)
         if request.user.is_authenticated():
             current_user = request.user
 
@@ -46,16 +52,23 @@ class CurrentlyMonitoredCompany(APIView):
 
     def post(self, request, format=None):
 
-        context = {}
+        '''Create an API end point which allows authenticated users (no need to handle API keys, 
+        just assume they're logged in) to pass in the id of a company to monitor.'''
 
-        '''if request.user.is_authenticated():
+        # only authenticated users can perform this operation (test with admin user)
+        if request.user.is_authenticated():
 
             current_user = request.user
 
-            queryset = Company.objects.get(id=request.da).add(current_user)
+            # get the company the user wants to monitor (passed in from the post request)
+            company = self.get_object(id=request.data)
 
-            serializer = CompanySerializer(queryset)
+            # updating a django <ManyToManyField> 
+            queryset = company.monitors.add(current_user.id)
 
+            serializer = CompanySerializer(company, data={'monitor':queryset})
+
+            # validate data ( can only save if validated )
             if serializer.is_valid():
 
                 serializer.save()
@@ -118,10 +131,6 @@ class UserWhoCreatedTheMostCompanies(APIView):
         context = {'user_created_most_companies': serializer.data}
 
         return Response(context)
-
-class UserWithHighestNumberofEmployees(APIView):
-    '''User with the greatest total number of employees at all companies they have created'''
-    pass
 
 class AverageDealsRaisedbyCountry(APIView):
     '''Average deal amount raised by country (i.e. deals for companies in those countries)'''
