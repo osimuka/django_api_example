@@ -1,12 +1,12 @@
 '''Django REST framework was used for this exercise http://www.django-rest-framework.org/'''
-
+from collections import Counter
 from django.http import Http404
 from companies.models import Company, Employee, Deal
 from rest_framework import viewsets, exceptions, status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from beauhurst_assessment.serializers import CompanySerializer, UserSerializer
+from django_api_example.serializers import CompanySerializer, UserSerializer
 
 class CompanyListView(viewsets.ModelViewSet):
 
@@ -111,17 +111,13 @@ class UserWhoCreatedTheMostCompanies(APIView):
 
     def get(self, request, format=None):
 
-        # an empty dictionary to store the values for which user created the most company
-        d = {}
+        # python builtin counter
+        counter = Counter()
 
         for company in Company.objects.all():
+            counter[company.creator] += 1
 
-            if company.creator not in d:
-                d[company.creator] = 1 # each company atleast has a creator
-            else:
-                d[company.creator] += 1
-
-        queryset = max(d, key=d.get)
+        queryset = max(counter, key=lambda k: counter[k])
 
         serializer = UserSerializer(queryset, many=False)
 

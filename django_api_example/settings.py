@@ -56,7 +56,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'beauhurst_assessment.urls'
+ROOT_URLCONF = 'django_api_example.urls'
 
 TEMPLATES = [
     {
@@ -74,7 +74,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'beauhurst_assessment.wsgi.application'
+WSGI_APPLICATION = 'django_api_example.wsgi.application'
 
 
 # Database
