@@ -7,9 +7,9 @@ db.sqlite3
 
 .DS_Store
 
-beauhurst_assessment/.Python
-beauhurst_assessment/bin/
-beauhurst_assessment/include/
-beauhurst_assessment/lib/
-beauhurst_assessment/pip-selfcheck.json
-beauhurst_assessment/share/
+django_api_example/.Python
+django_api_example/bin/
+django_api_example/include/
+django_api_example/lib/
+django_api_example/pip-selfcheck.json
+django_api_example/share/
