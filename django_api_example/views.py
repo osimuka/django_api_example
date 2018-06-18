@@ -1,6 +1,8 @@
 '''Django REST framework was used for this exercise http://www.django-rest-framework.org/'''
 from collections import Counter
 from django.http import Http404
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from companies.models import Company, Employee, Deal
 from rest_framework import viewsets, exceptions, status
 from rest_framework.views import APIView
@@ -25,57 +27,50 @@ class CurrentlyMonitoredCompany(APIView):
         except Company.DoesNotExist:
             raise Http404
 
+    @method_decorator(login_required)
     def get(self, request, format=None):
 
         '''Create an API end point which allows authenticated users to see 
          which companies they're currently monitoring.'''
 
+
         context = {}
 
-        # only authenticated users can perform this operation (test with admin user)
-        if request.user.is_authenticated():
-            current_user = request.user
+        current = request.user
 
-            queryset = Company.objects.filter(monitors=current_user.id)
+        queryset = Company.objects.filter(monitors=current.id)
 
-            serializer = CompanySerializer(queryset, many=True)
+        serializer = CompanySerializer(queryset, many=True)
 
-            context = {'currently_monitoring': serializer.data}
+        context = {'currently_monitoring': serializer.data}
 
-            return Response(context)
+        return Response(context)
 
-        # raise an authentication error if the user is not logged in 403 forbidden
-        raise exceptions.NotAuthenticated()
 
+    @method_decorator(login_required)
     def post(self, request, format=None):
 
         '''Create an API end point which allows authenticated users (no need to handle API keys, 
         just assume they're logged in) to pass in the id of a company to monitor.'''
 
-        # only authenticated users can perform this operation (test with admin user)
-        if request.user.is_authenticated():
+        current = request.user
 
-            current_user = request.user
+        # get the company the user wants to monitor (passed in from the post request)
+        company = self.get_object(id=request.data)
 
-            # get the company the user wants to monitor (passed in from the post request)
-            company = self.get_object(id=request.data)
+        # updating a django <ManyToManyField> 
+        queryset = company.monitors.add(current.id)
 
-            # updating a django <ManyToManyField> 
-            queryset = company.monitors.add(current_user.id)
+        serializer = CompanySerializer(company, data={'monitor':queryset})
 
-            serializer = CompanySerializer(company, data={'monitor':queryset})
+        # validate data ( can only save if validated )
+        if serializer.is_valid():
 
-            # validate data ( can only save if validated )
-            if serializer.is_valid():
+            serializer.save()
 
-                serializer.save()
+            return Response(serializer.data)
 
-                return Response(serializer.data)
-
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-         # raise an authentication error if the user is not logged in 403 forbidden'''
-        raise exceptions.NotAuthenticated()
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TenMostRecentCompanies(APIView):
