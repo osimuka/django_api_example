@@ -1,4 +1,4 @@
-# Beauhurst Assessment
+# Django RestAPi example
 
 We've included a tiny Django web app which is a wiki(-ish) of UK companies and their employees. There's currently no front end views, and everything is getting created, updated and deleted through the admin.
 
